@@ -118,7 +118,7 @@ This command produces two files: a YAML datamodel for the file_species `test` lo
 3. Locate the datamodel `products/yaml/test/yaml`. See [YAML Struture](#yaml-datamodel-structure) for details on the file structure. Fields that should be replaced with human-edited content are indicated with the text `replace-me`.  Let's update the text for the `short` and `description` fields
 4. Replace the `short` text with "this is a test file"
 5. Replace the `description` text with "this is a longer description of what this file is.
-6. To regenerate a markdown file with the newly edited YAML content, run the following command:
+6. To regenerate a markdown file with the newly edited YAML content, run the following command with the `-m` option:
 
 ```bash
 python example_datamodel_generate.py -f test -p '$TEST_REDUX/{version}/test-{id}.fits' -k version=v1 id=123 -m
@@ -165,6 +165,7 @@ The YAML file has is structured as a dictionary with the following sections:
 - **general** - basic information on the data product
 - **changelog** - an automaticallly populated dictionary of differences between FITS files
 - **releases** - an automatically populated dictionary of the example HDU content for a given file from a given release of data
+  - **hdus** - a dictionary of HDU extensions containing basic HDU info, the header for ImageHDUs and table columns for BinaryTableHDUs
 
 The YAML file contains fields with the text `replace me`.  These indicate fields that should be replaced with human-curated content, to customize the datamodel. 
 
@@ -181,6 +182,6 @@ The markdown file has the following structure:
 
 ## Missing in this example
 
-- YAML validation
-- Changelog
-- YAML caching
+- **YAML validation** - to ensure "replace me" fields are in fact replaced
+- **Changelog** - computing the difference between FITS files
+- **YAML caching** - to preserve human-edited fields on YAML update
