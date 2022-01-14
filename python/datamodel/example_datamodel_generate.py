@@ -61,7 +61,8 @@ class DatamodelGenerator(object):
         self.release = self.keywords['version']
         self.example = path.format(**keys)
         self.filepath = pathlib.Path(os.path.expandvars(self.example))
-
+        self.filename = self.filepath.name
+        
         # create the output yaml and md datamodel directories
         self.output_yaml = f'products/yaml/{self.file_species}.yaml'
         self.output_md = f'products/md/{self.file_species}.md'
@@ -90,6 +91,8 @@ class DatamodelGenerator(object):
         # generate initial content
         self.content = {'file_species': self.file_species, 
                    'filetype': self.filepath.suffix.upper()[1:], 
+                   'filename': self.filename,
+                   'template': self.abstract_path,
                    'releases': [self.release], 
                    'environments': [self.env_label]}
 

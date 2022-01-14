@@ -8,9 +8,9 @@ general:
   releases: {{ releases }}
   environments: {{ environments }}
   naming_convention: >-
-    replace me - with {{file_template}} or {{filename}} but with regex pattern matches
+    replace me - with {{template}} or {{filename}} but with regex pattern matches
   generated_by: >-
-    replace me - with the name(s) of any git or svn product(s) that produces this product.
+    replace me - with the name(s) of any git or svn software product(s) that produces this product.
 
 changelog:
   description: Describes changes to the datamodel product and/or file structure from one release to another
