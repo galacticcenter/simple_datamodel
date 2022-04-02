@@ -99,11 +99,13 @@ Test data file located at `/data/v1/test-123.fits`, and required inputs are the 
 - **keyword variables**: 
   - version: `v1`
   - id: `123`
+- Create directories `products/yaml` `products/md` and `products/html` to store the outputs
 
 Given the above input, the code builds a path to the example FITS file, automatically reads in the file content, and populates the content into output datamodels using the following template files:
 
 - **stub.yaml** - Jinja2 YAML datamodel template
 - **stub.md** - Jinja2 markdown template
+- **stub.html** - Jinja2 html template
 
 Run the following steps from the top of the repo
 

@@ -66,10 +66,12 @@ class DatamodelGenerator(object):
         # create the output yaml and md datamodel directories
         self.output_yaml = f'products/yaml/{self.file_species}.yaml'
         self.output_md = f'products/md/{self.file_species}.md'
+        self.output_html = f'products/html/{self.file_species}.html'        
         
         # generate the yaml datamodel file
         if not skip_yaml:
-            self.generate_yaml_from_stub() 
+            self.generate_yaml_from_stub()
+            
              
     def generate_yaml_from_stub(self):
         """ Generate a yaml datamodel file for a species of data product
@@ -96,8 +98,10 @@ class DatamodelGenerator(object):
                    'releases': [self.release], 
                    'environments': [self.env_label]}
 
-        # extract FITS content and add to yaml
-        self.add_fits_content()
+        # check if it's a FITS file so we can add its header keywords
+        if self.content['filetype'] == 'FITS':
+            # extract FITS content and add to yaml
+            self.add_fits_content()
 
         # render content into the yaml stub, convert to dictionary and
         # format it to a string for writing to file
@@ -105,8 +109,41 @@ class DatamodelGenerator(object):
         self.content = yaml.dump(yaml_out, sort_keys=False)
 
         # write out yaml file
+        print('yaml output: '+self.output_yaml)
         self.write(self.output_yaml)
     
+    def generate_html_from_yaml(self):
+        """ Generate a final html file for a species of data product 
+        
+        Converts the YAML datamodel into a markdown file for display on
+        Github or integration into other web content.  Renders the YAML datamodel content
+        using a stub.md template file.  If the content of the YAML
+        datamodel file changes, or the md stub template changes, simply rerun this method to 
+        regenerate the markdown file. 
+        
+        """ 
+
+        # get the markdown template
+        self.template = self.environment.get_template('stub.html')
+
+        # construct the output markdown filepath
+        if not self.output_yaml or not os.path.exists(self.output_yaml):
+            raise AttributeError('No output yaml filepath set.  Make sure you generate a yaml file first.')
+        #self.output_md = self.output_yaml.replace('yaml', 'md')
+
+        # read the YAML contents
+        with open(self.output_yaml, 'r') as file:
+            yaml_content = yaml.load(file, Loader=yaml.FullLoader)
+
+        # render the YAML contents into the markdown and write it out
+        if os.path.splitext(self.filepath)[1].upper() == '.FITS':        
+            hdus = yaml_content['releases'][self.release]['hdus']
+            self.content = self.template.render(content=yaml_content, hdus=hdus, selected_release=self.release)
+        else:
+            self.content = self.template.render(content=yaml_content,selected_release=self.release)
+        self.output = f'products/md/{self.file_species}.html'
+        self.write(self.output_html)
+
     def generate_md_from_yaml(self):
         """ Generate a final markdown file for a species of data product 
         
@@ -131,11 +168,14 @@ class DatamodelGenerator(object):
             yaml_content = yaml.load(file, Loader=yaml.FullLoader)
 
         # render the YAML contents into the markdown and write it out
-        hdus = yaml_content['releases'][self.release]['hdus']
-        self.content = self.template.render(content=yaml_content, hdus=hdus, selected_release=self.release)
+        if os.path.splitext(self.filepath)[1].upper() == '.FITS':
+            hdus = yaml_content['releases'][self.release]['hdus']
+            self.content = self.template.render(content=yaml_content, hdus=hdus, selected_release=self.release)
+        else:
+            self.content = self.template.render(content=yaml_content, selected_release=self.release)            
         self.output = f'products/md/{self.file_species}.md'
         self.write(self.output_md)
-
+        
     def write(self, output: str):
         """ Write content to a file """
 
@@ -346,6 +386,7 @@ def dmgen(args):
     dm = DatamodelGenerator()
     dm.generate(species=opts.file_species, path=opts.path, keys=keys, skip_yaml=opts.markdown_only)
     dm.generate_md_from_yaml()
+    dm.generate_html_from_yaml()    
 
 if __name__ == '__main__':
     dmgen(sys.argv[1:])
