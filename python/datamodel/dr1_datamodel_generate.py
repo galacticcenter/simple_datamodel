@@ -8,6 +8,7 @@ import os
 import pathlib
 import sys
 from astropy.io import fits
+from astropy.table import Table
 from jinja2 import Environment, FileSystemLoader
 
 
@@ -32,8 +33,11 @@ class DatamodelGenerator(object):
         loader = FileSystemLoader("templates")
         self.environment = Environment(loader=loader, trim_blocks=True, lstrip_blocks=True)
 
-    def generate(self, species: str = 'test', path: str = '$DR1/{version}/test-{id}.fits', 
-                 keys: dict = {'version': 'v1', 'id': '123'}, skip_yaml=False):
+    def generate(self, species: str = 'test',
+                 path: str = '$DR1/{version}/test-{id}.fits', 
+                 keys: dict = {'version': 'v1', 'id': '123'},
+                 is_table=False,
+                 skip_yaml=False):
         """ Generate a datamodel for a species of data product 
 
         Generate a YAML datamodel for a species of data product.  To generate a datamodel file, 
@@ -48,6 +52,8 @@ class DatamodelGenerator(object):
             The abstract path to the file, by default '$TEST_REDUX/{version}/test-{id}.fits'
         keys : dict, optional
             Example keywords to build an example filepath, by default {'version': 'v1', 'id': '123'}
+        is_table : bool, optional
+            If True, makes writes column names when writing yaml, by default False
         skip_yaml : bool, optional
             If True, skips the yaml generation step, by default False
         """
@@ -56,6 +62,8 @@ class DatamodelGenerator(object):
         self.file_species = species
         self.abstract_path = path
         self.env_label = path.split(os.sep)[0][1:]
+        
+        self.is_table = is_table
         
         # create the example filepath
         self.keywords = keys
@@ -107,7 +115,11 @@ class DatamodelGenerator(object):
         if self.content['filetype'] == 'FITS':
             # extract FITS content and add to yaml
             self.add_fits_content()
-
+        
+        # If filetype is a table file, add table content
+        if self.is_table:
+            self.add_table_content()
+        
         # render content into the yaml stub, convert to dictionary and
         # format it to a string for writing to file
         yaml_out = yaml.load(self.template.render(self.content), Loader=yaml.FullLoader)
@@ -186,6 +198,43 @@ class DatamodelGenerator(object):
 
         with open(output, 'w') as f:
             f.write(self.content)
+    
+    def add_table_content(self):
+        """ Add content form an example table file.
+        
+        Creates a new entry in the YAML file for the given data product release
+        of a file species. Provides some basic information on the abstract path,
+        example used, environment variable label, along with Table column names.
+        
+        New releases of the data product would go in the same datamodel file, but as
+        a new entry in the "releases" section of the YAML file.  This way you can keep
+        track of changes in data products over time/releases.
+        
+        """
+        # Get the overall filesize
+        self.content['filesize'] = self._format_bytes(self.filepath.stat().st_size)
+        
+        # create an entry for the current release of data
+        self.content['release_content'] = {}
+        self.content['release_content'][self.release] = {
+            'path': self.abstract_path,
+            'example': self.example,
+            'environment': self.env_label,
+            'columns': {}
+        }
+        
+        # Extract table column headers
+        cols = {}
+        
+        in_table = Table.read(self.filepath, format='ascii')
+        for col_number, col_name in enumerate(in_table.colnames):
+            
+            # generate column number
+            extno = f'col{col_number}'
+            cols[extno] = col_name
+        
+        self.content['release_content'][self.release]['columns'] = cols
+        
      
     def add_fits_content(self):
         """ Add content from an example FITS file
@@ -225,7 +274,8 @@ class DatamodelGenerator(object):
                 hdus[extno] = row
         self.content['release_content'][self.release]['hdus'] = hdus
 
-    def _convert_hdu_to_dict(self, hdu: fits.hdu.base._BaseHDU, description: str = None) -> dict:
+    def _convert_hdu_to_dict(self, hdu: fits.hdu.base._BaseHDU,
+                             description: str = None) -> dict:
         """ Convert an HDU into a dictionary entry
         
         Converts an Astropy FITS HDU extension into a dictionary entry 
