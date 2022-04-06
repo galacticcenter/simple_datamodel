@@ -64,6 +64,10 @@ class DatamodelGenerator(object):
         self.filename = self.filepath.name
         
         # create the output yaml and md datamodel directories
+        os.makedirs('products/yaml/', exist_ok=True)
+        os.makedirs('products/md/', exist_ok=True)
+        os.makedirs('products/html/', exist_ok=True)
+        
         self.output_yaml = f'products/yaml/{self.file_species}.yaml'
         self.output_md = f'products/md/{self.file_species}.md'
         self.output_html = f'products/html/{self.file_species}.html'        
