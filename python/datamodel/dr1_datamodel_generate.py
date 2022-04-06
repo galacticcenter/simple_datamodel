@@ -12,7 +12,8 @@ from jinja2 import Environment, FileSystemLoader
 
 
 # example environment path to some data
-os.environ['TEST_REDUX'] = (pathlib.Path('.').resolve() / 'data').as_posix()
+os.environ['DR1'] = (pathlib.Path('../').resolve()).as_posix()
+release_version = 'DR1'
 
 class DatamodelGenerator(object):
     """ Class for generating datamodel for FITS files
@@ -31,7 +32,7 @@ class DatamodelGenerator(object):
         loader = FileSystemLoader("templates")
         self.environment = Environment(loader=loader, trim_blocks=True, lstrip_blocks=True)
 
-    def generate(self, species: str = 'test', path: str = '$TEST_REDUX/{version}/test-{id}.fits', 
+    def generate(self, species: str = 'test', path: str = '$DR1/{version}/test-{id}.fits', 
                  keys: dict = {'version': 'v1', 'id': '123'}, skip_yaml=False):
         """ Generate a datamodel for a species of data product 
 
@@ -58,7 +59,7 @@ class DatamodelGenerator(object):
         
         # create the example filepath
         self.keywords = keys
-        self.release = self.keywords['version']
+        self.release = release_version
         self.example = path.format(**keys)
         self.filepath = pathlib.Path(os.path.expandvars(self.example))
         self.filename = self.filepath.name
