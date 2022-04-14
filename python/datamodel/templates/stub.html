@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>stub</title>
+  <title>{{ content.general.name }}</title>
   <style>
     html {
       line-height: 1.5;
@@ -155,7 +155,9 @@
 <ul>
 <li><a href="#basic-information">Basic Information</a></li>
 <li><a href="#changelog">Changelog</a></li>
+{% if hdus %}
 <li><a href="#example-hdu-list">Example HDU List</a></li>
+{% endif %}
 </ul>
 <hr />
 <h2 id="basic-information">Basic Information</h2>
@@ -175,7 +177,12 @@
 
 {% if hdus %}
 <h3 id="hdu-list-for-release-selected_release">HDU List for release {{ selected_release }}</h3>
-<p>{% for hdu_id, hdu in hdus.items() %} - <a href="#%7B%7Bhdu_id%20%7C%20lower%7D%7D-%7B%7Bhdu.name%20%7C%20lower%7D%7D">{{ hdu_id | upper }}: {{ hdu.name }}</a> {% endfor %}</p>
+<p><ul>{% for hdu_id, hdu in hdus.items() %} <li> <a href="#%7B%7Bhdu_id%20%7C%20lower%7D%7D-%7B%7Bhdu.name%20%7C%20lower%7D%7D">{{ hdu_id | upper }}: {{ hdu.name }}</a> </li> {% endfor %}</ul></p>
+{% endif %}
+
+{% if columns %}
+<h3 id="column-list-for-release-selected_release">Column List for release {{ selected_release }}</h3>
+<p><ul>{% for col_id, col in columns.items() %} <li> <a href="#%7B%7Bcol_id%20%7C%20lower%7D%7D-%7B%7Bcol.name%20%7C%20lower%7D%7D">{{ col_id | upper }}: {{ col.name }}</a> </li> {% endfor %}</ul></p>
 {% endif %}
 
 <hr />

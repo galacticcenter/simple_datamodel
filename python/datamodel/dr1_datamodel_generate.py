@@ -156,6 +156,9 @@ class DatamodelGenerator(object):
         if os.path.splitext(self.filepath)[1].upper() == '.FITS':        
             hdus = yaml_content['releases'][self.release]['hdus']
             self.content = self.template.render(content=yaml_content, hdus=hdus, selected_release=self.release)
+        elif self.is_table:
+            columns = yaml_content['releases'][self.release]['columns']
+            self.content = self.template.render(content=yaml_content, columns=columns, selected_release=self.release)
         else:
             self.content = self.template.render(content=yaml_content,selected_release=self.release)
         self.output = f'products/md/{self.file_species}.html'
@@ -188,6 +191,9 @@ class DatamodelGenerator(object):
         if os.path.splitext(self.filepath)[1].upper() == '.FITS':
             hdus = yaml_content['releases'][self.release]['hdus']
             self.content = self.template.render(content=yaml_content, hdus=hdus, selected_release=self.release)
+        elif self.is_table:
+            columns = yaml_content['releases'][self.release]['columns']
+            self.content = self.template.render(content=yaml_content, columns=columns, selected_release=self.release)
         else:
             self.content = self.template.render(content=yaml_content, selected_release=self.release)            
         self.output = f'products/md/{self.file_species}.md'
