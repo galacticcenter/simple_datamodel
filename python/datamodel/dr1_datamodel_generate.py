@@ -36,7 +36,7 @@ class DatamodelGenerator(object):
     def generate(self, species: str = 'test',
                  path: str = '$DR1/{version}/test-{id}.fits', 
                  keys: dict = {'version': 'v1', 'id': '123'},
-                 is_table=False,
+                 is_table=False, table_kwargs=None,
                  skip_yaml=False):
         """ Generate a datamodel for a species of data product 
 
@@ -63,7 +63,12 @@ class DatamodelGenerator(object):
         self.abstract_path = path
         self.env_label = path.split(os.sep)[0][1:]
         
+        # Derive file heirarchy
+        self.file_heirarchy = path.split(os.sep)[1:-1]
+        self.file_heirarchy_path = os.sep.join(self.file_heirarchy) + os.sep
+        
         self.is_table = is_table
+        self.table_kwargs = table_kwargs
         
         # create the example filepath
         self.keywords = keys
@@ -73,13 +78,13 @@ class DatamodelGenerator(object):
         self.filename = self.filepath.name
         
         # create the output yaml and md datamodel directories
-        os.makedirs('products/yaml/', exist_ok=True)
-        os.makedirs('products/md/', exist_ok=True)
-        os.makedirs('products/html/', exist_ok=True)
+        os.makedirs(f'products/yaml/{self.file_heirarchy_path}', exist_ok=True)
+        os.makedirs(f'products/md/{self.file_heirarchy_path}', exist_ok=True)
+        os.makedirs(f'products/html/{self.file_heirarchy_path}', exist_ok=True)
         
-        self.output_yaml = f'products/yaml/{self.file_species}.yaml'
-        self.output_md = f'products/md/{self.file_species}.md'
-        self.output_html = f'products/html/{self.file_species}.html'        
+        self.output_yaml = f'products/yaml/{self.file_heirarchy_path}/{self.file_species}.yaml'
+        self.output_md = f'products/md/{self.file_heirarchy_path}/{self.file_species}.md'
+        self.output_html = f'docs/{self.file_heirarchy_path}/{self.file_species}.html'        
         
         # generate the yaml datamodel file
         if not skip_yaml:
@@ -104,13 +109,17 @@ class DatamodelGenerator(object):
         self.template = self.environment.get_template('stub.yaml')
 
         # generate initial content
-        self.content = {'file_species': self.file_species, 
-                   'filetype': self.filepath.suffix.upper()[1:], 
-                   'filename': self.filename,
-                   'template': self.abstract_path,
-                   'releases': [self.release], 
-                   'environments': [self.env_label]}
-
+        self.content = {
+            'file_species': self.file_species, 
+            'filetype': self.filepath.suffix.upper()[1:], 
+            'filename': self.filename,
+            'file_heirarchy': self.file_heirarchy,
+            'file_heirarchy_path': self.file_heirarchy_path,
+            'template': self.abstract_path,
+            'releases': [self.release], 
+            'environments': [self.env_label],
+        }
+        
         # check if it's a FITS file so we can add its header keywords
         if self.content['filetype'] == 'FITS':
             # extract FITS content and add to yaml
@@ -232,12 +241,26 @@ class DatamodelGenerator(object):
         # Extract table column headers
         cols = {}
         
-        in_table = Table.read(self.filepath, format='ascii')
-        for col_number, col_name in enumerate(in_table.colnames):
+        if self.table_kwargs != None:
+            in_table = Table.read(self.filepath, **self.table_kwargs)
+        else:
+            in_table = Table.read(self.filepath, format='ascii')
+        
+        
+        for col_number, col_name in enumerate(in_table.colnames, start=1):
             
             # generate column number
-            extno = f'col{col_number}'
-            cols[extno] = col_name
+            col_id = f'col{col_number}'
+            
+            column = (in_table[col_name])
+                        
+            col_row = {
+                'name': col_name,
+                'type': str(column.dtype),
+                'unit': self._nonempty_string(column.unit),
+                'description': self._nonempty_string()}
+            
+            cols[col_id] = col_row
         
         self.content['release_content'][self.release]['columns'] = cols
         
