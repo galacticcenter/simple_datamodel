@@ -7,7 +7,9 @@
 ## Contents
 - [Basic Information](#basic-information)
 - [Changelog](#changelog)
+{% if hdus %}
 - [Example HDU List](#example-hdu-list)
+{% endif %}
 
 
 ---
@@ -37,6 +39,13 @@
 ### HDU List for release {{ selected_release }}
 {% for hdu_id, hdu in hdus.items() %}
   - [{{ hdu_id | upper }}: {{ hdu.name }}](#{{hdu_id | lower}}-{{hdu.name | lower}})
+{% endfor %}
+{% endif %}
+
+{% if columns %}
+### Column List for release {{ selected_release }}
+{% for col_id, col in columns.items() %}
+  - [{{ col_id | upper }}: {{ col.name }}](#{{col_id | lower}}-{{col.name | lower}})
 {% endfor %}
 {% endif %}
 
