@@ -13,8 +13,8 @@ from jinja2 import Environment, FileSystemLoader
 
 
 # example environment path to some data
-os.environ['DR1'] = (pathlib.Path('../').resolve()).as_posix()
-release_version = 'DR1'
+os.environ['DR'] = (pathlib.Path('../').resolve()).as_posix()
+release_version = 'DR2'
 
 class DatamodelGenerator(object):
     """ Class for generating datamodel for FITS files
@@ -34,7 +34,7 @@ class DatamodelGenerator(object):
         self.environment = Environment(loader=loader, trim_blocks=True, lstrip_blocks=True)
 
     def generate(self, species: str = 'test',
-                 path: str = '$DR1/{version}/test-{id}.fits', 
+                 path: str = '$DR/{version}/test-{id}.fits', 
                  keys: dict = {'version': 'v1', 'id': '123'},
                  is_table=False, table_kwargs=None,
                  skip_yaml=False):
@@ -81,6 +81,7 @@ class DatamodelGenerator(object):
         os.makedirs(f'products/yaml/{self.file_heirarchy_path}', exist_ok=True)
         os.makedirs(f'products/md/{self.file_heirarchy_path}', exist_ok=True)
         os.makedirs(f'products/html/{self.file_heirarchy_path}', exist_ok=True)
+        os.makedirs(f'docs/{self.file_heirarchy_path}', exist_ok=True)
         
         self.output_yaml = f'products/yaml/{self.file_heirarchy_path}/{self.file_species}.yaml'
         self.output_md = f'products/md/{self.file_heirarchy_path}/{self.file_species}.md'
