@@ -10,7 +10,7 @@ import sys
 from astropy.io import fits
 from astropy.table import Table
 from jinja2 import Environment, FileSystemLoader
-
+from xhtml2pdf import pisa
 
 # example environment path to some data
 os.environ['DR'] = (pathlib.Path('../').resolve()).as_posix()
@@ -33,11 +33,13 @@ class DatamodelGenerator(object):
         loader = FileSystemLoader("templates")
         self.environment = Environment(loader=loader, trim_blocks=True, lstrip_blocks=True)
 
-    def generate(self, species: str = 'test',
-                 path: str = '$DR/{version}/test-{id}.fits', 
-                 keys: dict = {'version': 'v1', 'id': '123'},
-                 is_table=False, table_kwargs=None,
-                 skip_yaml=False):
+    def generate(
+            self, species: str = 'test',
+            path: str = '$DR/{version}/test-{id}.fits', 
+            keys: dict = {'version': 'v1', 'id': '123'},
+            is_table=False, table_kwargs=None,
+            skip_yaml=False,
+        ):
         """ Generate a datamodel for a species of data product 
 
         Generate a YAML datamodel for a species of data product.  To generate a datamodel file, 
@@ -81,15 +83,22 @@ class DatamodelGenerator(object):
         os.makedirs(f'products/yaml/{self.file_heirarchy_path}', exist_ok=True)
         os.makedirs(f'products/md/{self.file_heirarchy_path}', exist_ok=True)
         os.makedirs(f'products/html/{self.file_heirarchy_path}', exist_ok=True)
-        os.makedirs(f'docs/{self.file_heirarchy_path}', exist_ok=True)
+        os.makedirs(f'products/pdf/{self.file_heirarchy_path}', exist_ok=True)
+        os.makedirs(f'public-html/{self.file_heirarchy_path}', exist_ok=True)
         
         self.output_yaml = f'products/yaml/{self.file_heirarchy_path}/{self.file_species}.yaml'
         self.output_md = f'products/md/{self.file_heirarchy_path}/{self.file_species}.md'
-        self.output_html = f'docs/{self.file_heirarchy_path}/{self.file_species}.html'        
+        self.output_html = f'public-html/{self.file_heirarchy_path}/{self.file_species}.html'
+        self.output_pdf = f'products/pdf/{self.file_heirarchy_path}/{self.file_species}.pdf'
         
-        # generate the yaml datamodel file
+        # Generate the yaml datamodel file
+        # If it already exists, just update relevant fields.
+        # Otherwise make new yaml file.
         if not skip_yaml:
-            self.generate_yaml_from_stub()
+            if os.path.exists(self.output_yaml):
+                self.update_existing_yaml()
+            else:
+                self.generate_yaml_from_stub()
             
              
     def generate_yaml_from_stub(self):
@@ -171,9 +180,33 @@ class DatamodelGenerator(object):
             self.content = self.template.render(content=yaml_content, columns=columns, selected_release=self.release)
         else:
             self.content = self.template.render(content=yaml_content,selected_release=self.release)
-        self.output = f'products/md/{self.file_species}.html'
+        
+        self.output = f'products/html/{self.file_species}.html'
         self.write(self.output_html)
-
+    
+    def generate_pdf_from_html(self):
+        """ Generate a PDF file from the HTML outputs
+        
+        """
+        # Check if HTML file already exists or not
+        if not self.output_html or not os.path.exists(self.output_html):
+            raise AttributeError('No output html file generated for this file species.\nMake sure to generate an html file first with `generate_html_from_yaml()`.')
+        
+        with open(self.output_html, 'r') as in_html_file:
+            html_content = in_html_file.read()
+        
+        with open(self.output_pdf, 'w+b') as out_pdf_file:
+            pisa_status = pisa.CreatePDF(
+                html_content,
+                dest=out_pdf_file,
+                path=self.output_html,
+            )
+            
+            if pisa_status.err:
+                print(f"Error during PDF generation of {self.output_pdf}")
+        
+        
+    
     def generate_md_from_yaml(self):
         """ Generate a final markdown file for a species of data product 
         
