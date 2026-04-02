@@ -155,6 +155,94 @@ class DatamodelGenerator(object):
         print('yaml output: '+self.output_yaml)
         self.write(self.output_yaml)
     
+    def update_existing_yaml(
+            self,
+            general_keys_to_update = [
+                'file_heirarchy',
+                'file_heirarchy_path',
+                'template',
+                'environments',
+            ],
+            general_keys_to_append = [
+                'releases',
+            ],
+        ):
+        """ Update an existing yaml datamodel file for a species of data product
+        
+        Generate a yaml datamodel file for a species of data product
+        
+        Generates a YAML datamodel file for a given data product species.  The initial YAML
+        file is generated using the stub.yaml template, and populated with content about
+        the file species and information extracted from the example FITS file.  
+        
+        By default, fields requiring human-editable content are initially set with 
+        "replace me" text, indicating that field should be replaced by the user.  After
+        customizing the YAML content, the user can regenerate the markdown file
+        using the generate_md_from_yaml() method.
+        
+        """ 
+        
+        # construct the output markdown filepath
+        if not self.output_yaml or not os.path.exists(self.output_yaml):
+            raise AttributeError('No output yaml filepath set.  Make sure you generate a yaml file first.')
+        
+        with open(self.output_yaml, 'r') as file:
+            yaml_content = yaml.load(file, Loader=yaml.FullLoader)
+        
+        # generate initial general content
+        generic_general_content = {
+            'file_species': self.file_species, 
+            'filetype': self.filepath.suffix.upper()[1:],
+            'filesize': self._format_bytes(self.filepath.stat().st_size),
+            'filename': self.filename,
+            'file_heirarchy': self.file_heirarchy,
+            'file_heirarchy_path': self.file_heirarchy_path,
+            'template': self.abstract_path,
+            'releases': [self.release], 
+            'environments': [self.env_label],
+            
+        }
+        
+        # Update items in the general section
+        for key in general_keys_to_update:
+            if key in yaml_content["general"]:
+                yaml_content["general"][key] = generic_general_content[key]
+        
+        for key in general_keys_to_append:
+            if key in yaml_content["general"]:
+                yaml_content["general"][key] = yaml_content["general"][key] + generic_general_content[key]
+            else:
+                yaml_content["general"][key] = generic_general_content[key]
+        
+        # Update specific items for the releases section
+        # check if it's a FITS file so we can add its header keywords
+        if generic_general_content['filetype'] == 'FITS':
+            # extract FITS content and add to existing yaml
+            fits_content = self.add_fits_content()
+            yaml_content['releases'][self.release] = fits_content[self.release]
+        
+        # If filetype is a table file, add table content
+        if self.is_table:
+            # extract table file content and add to existing yaml
+            table_content = self.add_table_content()
+            yaml_content['releases'][self.release] = table_content[self.release]
+            
+        
+        # Sort the releases in reverse order by key, so that more recent releases are first
+        # i.e. DR3, DR2, …
+        if isinstance(yaml_content['releases'], dict):
+            yaml_content['releases'] = dict(
+                sorted(
+                    yaml_content['releases'].items(), reverse=True,
+                )
+            )
+        
+        self.content = yaml.dump(yaml_content, sort_keys=False)
+        
+        # write out yaml file
+        print('yaml file updated at: ' + self.output_yaml)
+        self.write(self.output_yaml)
+    
     def generate_html_from_yaml(self):
         """ Generate a final html file for a species of data product 
         
