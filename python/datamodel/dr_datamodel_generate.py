@@ -117,11 +117,12 @@ class DatamodelGenerator(object):
 
         # get the yaml template
         self.template = self.environment.get_template('stub.yaml')
-
+        
         # generate initial content
         self.content = {
             'file_species': self.file_species, 
-            'filetype': self.filepath.suffix.upper()[1:], 
+            'filetype': self.filepath.suffix.upper()[1:],
+            'filesize': self._format_bytes(self.filepath.stat().st_size),
             'filename': self.filename,
             'file_heirarchy': self.file_heirarchy,
             'file_heirarchy_path': self.file_heirarchy_path,
@@ -133,15 +134,21 @@ class DatamodelGenerator(object):
         # check if it's a FITS file so we can add its header keywords
         if self.content['filetype'] == 'FITS':
             # extract FITS content and add to yaml
-            self.add_fits_content()
+            fits_content = self.add_fits_content()
+            
+            self.content['release_content'] = table_content
         
         # If filetype is a table file, add table content
         if self.is_table:
-            self.add_table_content()
+            table_content = self.add_table_content()
+            
+            self.content['release_content'] = table_content
         
         # render content into the yaml stub, convert to dictionary and
         # format it to a string for writing to file
-        yaml_out = yaml.load(self.template.render(self.content), Loader=yaml.FullLoader)
+        yaml_out = yaml.load(
+            self.template.render(self.content), Loader=yaml.FullLoader
+        )
         self.content = yaml.dump(yaml_out, sort_keys=False)
 
         # write out yaml file
