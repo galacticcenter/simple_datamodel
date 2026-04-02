@@ -267,12 +267,9 @@ class DatamodelGenerator(object):
         track of changes in data products over time/releases.
         
         """
-        # Get the overall filesize
-        self.content['filesize'] = self._format_bytes(self.filepath.stat().st_size)
-        
         # create an entry for the current release of data
-        self.content['release_content'] = {}
-        self.content['release_content'][self.release] = {
+        release_content_dict = {}
+        release_content_dict[self.release] = {
             'path': self.abstract_path,
             'example': self.example,
             'environment': self.env_label,
@@ -303,7 +300,9 @@ class DatamodelGenerator(object):
             
             cols[col_id] = col_row
         
-        self.content['release_content'][self.release]['columns'] = cols
+        release_content_dict[self.release]['columns'] = cols
+        
+        return release_content_dict
         
      
     def add_fits_content(self):
@@ -319,13 +318,9 @@ class DatamodelGenerator(object):
         track of changes in data products over time/releases.
         
         """
-
-        # get the overall filesize
-        self.content['filesize'] = self._format_bytes(self.filepath.stat().st_size)
-
-        # create an entry for the current release of data
-        self.content['release_content'] = {}
-        self.content['release_content'][self.release] = {
+        # create an entry for the current release of data        
+        release_content_dict = {}
+        release_content_dict[self.release] = {
             'path': self.abstract_path,
             'example': self.example,
             'environment': self.env_label,
@@ -342,7 +337,9 @@ class DatamodelGenerator(object):
                 # generate HDU extension number
                 extno = f'hdu{hdu_number}'
                 hdus[extno] = row
-        self.content['release_content'][self.release]['hdus'] = hdus
+        release_content_dict[self.release]['hdus'] = hdus
+        
+        return release_content_dict
 
     def _convert_hdu_to_dict(self, hdu: fits.hdu.base._BaseHDU,
                              description: str = None) -> dict:
