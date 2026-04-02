@@ -290,6 +290,13 @@ class DatamodelGenerator(object):
         with open(self.output_html, 'r') as in_html_file:
             html_content = in_html_file.read()
         
+        # Remove the hover element in CSS since xhtml2pdf can't handle it
+        css_before = "#TOC a:not(:hover) {"
+        css_after = "#TOC a {"
+        html_content = html_content.replace(
+            css_before, css_after,
+        )
+        
         with open(self.output_pdf, 'w+b') as out_pdf_file:
             pisa_status = pisa.CreatePDF(
                 html_content,
