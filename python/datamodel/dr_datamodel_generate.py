@@ -158,6 +158,7 @@ class DatamodelGenerator(object):
     def update_existing_yaml(
             self,
             general_keys_to_update = [
+                'filesize',
                 'file_heirarchy',
                 'file_heirarchy_path',
                 'template',
@@ -210,7 +211,7 @@ class DatamodelGenerator(object):
         
         for key in general_keys_to_append:
             if key in yaml_content["general"]:
-                yaml_content["general"][key] = yaml_content["general"][key] + generic_general_content[key]
+                yaml_content["general"][key] = list(set(yaml_content["general"][key] + generic_general_content[key]))
             else:
                 yaml_content["general"][key] = generic_general_content[key]
         
