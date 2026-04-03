@@ -65,9 +65,9 @@ class DatamodelGenerator(object):
         self.abstract_path = path
         self.env_label = path.split(os.sep)[0][1:]
         
-        # Derive file heirarchy
-        self.file_heirarchy = path.split(os.sep)[1:-1]
-        self.file_heirarchy_path = os.sep.join(self.file_heirarchy) + os.sep
+        # Derive file hierarchy
+        self.file_hierarchy = path.split(os.sep)[1:-1]
+        self.file_hierarchy_path = os.sep.join(self.file_hierarchy) + os.sep
         
         self.is_table = is_table
         self.table_kwargs = table_kwargs
@@ -80,16 +80,16 @@ class DatamodelGenerator(object):
         self.filename = self.filepath.name
         
         # create the output yaml and md datamodel directories
-        os.makedirs(f'products/yaml/{self.file_heirarchy_path}', exist_ok=True)
-        os.makedirs(f'products/md/{self.file_heirarchy_path}', exist_ok=True)
-        os.makedirs(f'products/html/{self.file_heirarchy_path}', exist_ok=True)
-        os.makedirs(f'products/pdf/{self.file_heirarchy_path}', exist_ok=True)
-        os.makedirs(f'public-html/{self.file_heirarchy_path}', exist_ok=True)
+        os.makedirs(f'products/yaml/{self.file_hierarchy_path}', exist_ok=True)
+        os.makedirs(f'products/md/{self.file_hierarchy_path}', exist_ok=True)
+        os.makedirs(f'products/html/{self.file_hierarchy_path}', exist_ok=True)
+        os.makedirs(f'products/pdf/{self.file_hierarchy_path}', exist_ok=True)
+        os.makedirs(f'public-html/{self.file_hierarchy_path}', exist_ok=True)
         
-        self.output_yaml = f'products/yaml/{self.file_heirarchy_path}/{self.file_species}.yaml'
-        self.output_md = f'products/md/{self.file_heirarchy_path}/{self.file_species}.md'
-        self.output_html = f'public-html/{self.file_heirarchy_path}/{self.file_species}.html'
-        self.output_pdf = f'products/pdf/{self.file_heirarchy_path}/{self.file_species}.pdf'
+        self.output_yaml = f'products/yaml/{self.file_hierarchy_path}/{self.file_species}.yaml'
+        self.output_md = f'products/md/{self.file_hierarchy_path}/{self.file_species}.md'
+        self.output_html = f'public-html/{self.file_hierarchy_path}/{self.file_species}.html'
+        self.output_pdf = f'products/pdf/{self.file_hierarchy_path}/{self.file_species}.pdf'
         
         # Generate the yaml datamodel file
         # If it already exists, just update relevant fields.
@@ -124,8 +124,8 @@ class DatamodelGenerator(object):
             'filetype': self.filepath.suffix.upper()[1:],
             'filesize': self._format_bytes(self.filepath.stat().st_size),
             'filename': self.filename,
-            'file_heirarchy': self.file_heirarchy,
-            'file_heirarchy_path': self.file_heirarchy_path,
+            'file_hierarchy': self.file_hierarchy,
+            'file_hierarchy_path': self.file_hierarchy_path,
             'template': self.abstract_path,
             'releases': [self.release], 
             'environments': [self.env_label],
@@ -159,8 +159,8 @@ class DatamodelGenerator(object):
             self,
             general_keys_to_update = [
                 'filesize',
-                'file_heirarchy',
-                'file_heirarchy_path',
+                'file_hierarchy',
+                'file_hierarchy_path',
                 'template',
                 'environments',
             ],
@@ -196,8 +196,8 @@ class DatamodelGenerator(object):
             'filetype': self.filepath.suffix.upper()[1:],
             'filesize': self._format_bytes(self.filepath.stat().st_size),
             'filename': self.filename,
-            'file_heirarchy': self.file_heirarchy,
-            'file_heirarchy_path': self.file_heirarchy_path,
+            'file_hierarchy': self.file_hierarchy,
+            'file_hierarchy_path': self.file_hierarchy_path,
             'template': self.abstract_path,
             'releases': [self.release], 
             'environments': [self.env_label],
